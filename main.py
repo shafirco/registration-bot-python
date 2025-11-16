@@ -78,7 +78,7 @@ def register_user(user: UserRegister):
     users_collection.insert_one(user_doc)
 
     # --- קרא לשרת Node.js כדי להביא הודעת AI ---
-    NODE_SERVER_URL = os.getenv("NODE_SERVER_URL", "http://localhost:4000")
+    NODE_SERVER_URL = os.getenv("NODE_SERVER_URL", "https://registration-bot-node-bfb7g2gscyghg4gc.israelcentral-01.azurewebsites.net")
     try:
         response = requests.get(f"{NODE_SERVER_URL}/random-message")
         ai_data = response.json()
