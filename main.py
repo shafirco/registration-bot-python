@@ -40,59 +40,25 @@ DATABASE_NAME = os.getenv("DATABASE_NAME", "registration_db")
 users_collection = None
 if MONGODB_URL:
     try:
-        # Multiple connection attempts with different SSL configurations
-        connection_configs = [
-            # Config 1: Standard SSL with certificate validation disabled
-            {
-                "ssl": True,
-                "ssl_cert_reqs": ssl.CERT_NONE,
-                "serverSelectionTimeoutMS": 3000,
-                "connectTimeoutMS": 3000,
-                "socketTimeoutMS": 3000
-            },
-            # Config 2: TLS with insecure settings
-            {
-                "tls": True,
-                "tlsInsecure": True,
-                "serverSelectionTimeoutMS": 3000,
-                "connectTimeoutMS": 3000,
-                "socketTimeoutMS": 3000
-            },
-            # Config 3: No SSL (fallback)
-            {
-                "ssl": False,
-                "serverSelectionTimeoutMS": 3000,
-                "connectTimeoutMS": 3000,
-                "socketTimeoutMS": 3000
-            }
-        ]
+        print("🔄 Attempting MongoDB connection...")
+        # Simple connection with minimal SSL settings
+        client = MongoClient(
+            MONGODB_URL,
+            serverSelectionTimeoutMS=5000,
+            connectTimeoutMS=5000,
+            socketTimeoutMS=5000,
+            retryWrites=True,
+            w='majority'
+        )
         
-        client = None
-        for i, config in enumerate(connection_configs):
-            try:
-                print(f"🔄 Trying MongoDB connection method {i+1}...")
-                client = MongoClient(MONGODB_URL, **config)
-                # Test the connection
-                client.admin.command('ping')
-                print(f"✅ MongoDB connected successfully with method {i+1}")
-                break
-            except Exception as e:
-                print(f"❌ Method {i+1} failed: {str(e)[:100]}...")
-                if client:
-                    client.close()
-                client = None
-                continue
+        # Test the connection
+        client.admin.command('ping')
+        db = client[DATABASE_NAME]
+        users_collection = db["users"]
+        print("✅ MongoDB connected successfully")
         
-        if client:
-            db = client[DATABASE_NAME]
-            users_collection = db["users"]
-        else:
-            print("⚠️ All MongoDB connection methods failed")
-            print("📝 Registration will work without database storage")
-            users_collection = None
-            
     except Exception as e:
-        print(f"⚠️ MongoDB connection setup failed: {e}")
+        print(f"⚠️ MongoDB connection failed: {e}")
         print("📝 Registration will work without database storage")
         users_collection = None
 else:
