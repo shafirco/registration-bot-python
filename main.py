@@ -95,7 +95,7 @@ def health_check():
 @app.post("/register")
 def register_user(user: UserRegister):
     # בדוק אם יש חיבור למסד נתונים
-    if users_collection:
+    if users_collection is not None:
         try:
             # בדוק אם המשתמש כבר קיים
             if users_collection.find_one({"email": user.email}):
