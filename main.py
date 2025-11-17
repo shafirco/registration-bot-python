@@ -85,8 +85,8 @@ def register_user(user: UserRegister):
             }
 
             # שמור בבסיס הנתונים
-            users_collection.insert_one(user_doc)
-            print(f"✅ User {user.email} saved to database")
+            result = users_collection.insert_one(user_doc)
+            print(f"✅ User {user.email} saved to database with ID: {result.inserted_id}")
         except Exception as e:
             print(f"⚠️ Database error: {e}")
             # Continue without database
