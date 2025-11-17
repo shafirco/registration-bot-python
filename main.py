@@ -39,13 +39,24 @@ DATABASE_NAME = os.getenv("DATABASE_NAME", "registration_db")
 users_collection = None
 if MONGODB_URL:
     try:
-        client = MongoClient(MONGODB_URL)
+        # Try with SSL settings for Azure compatibility
+        client = MongoClient(
+            MONGODB_URL,
+            tls=True,
+            tlsAllowInvalidCertificates=True,
+            serverSelectionTimeoutMS=5000,
+            connectTimeoutMS=5000,
+            socketTimeoutMS=5000
+        )
         db = client[DATABASE_NAME]
         users_collection = db["users"]
+        # Test the connection
+        client.admin.command('ping')
         print("✅ MongoDB connected successfully")
     except Exception as e:
         print(f"⚠️ MongoDB connection failed: {e}")
         print("📝 Registration will work without database storage")
+        users_collection = None
 else:
     print("📝 No MongoDB URL provided - registration will work without database storage")
 
